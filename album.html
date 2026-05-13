@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>우리의 앨범 💌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  /* ─── VARIABLES ─── */
+  :root {
+    --bg: #fdf6f0;
+    --surface: #fff8f4;
+    --primary: #d4667a;
+    --primary-light: #f0b3be;
+    --primary-dark: #a84860;
+    --accent: #e8a87c;
+    --text: #2c1a1a;
+    --text-soft: #8a6060;
+    --border: #f0d8d0;
+    --shadow: rgba(180, 80, 100, 0.15);
+    --film-strip: #1a1212;
+    --film-hole: #0d0808;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Gowun Dodum', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ─── GRAIN OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 128px;
+  }
+
+  /* ════════════════════════════════════
+     LOCK SCREEN
+  ════════════════════════════════════ */
+  #lockScreen {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #1a0a0a 0%, #2d1118 50%, #1a0a0a 100%);
+    gap: 0;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  #lockScreen.hidden {
+    opacity: 0;
+    transform: scale(1.05);
+    pointer-events: none;
+  }
+
+  .lock-bg-decor {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  }
+
+  .lock-petal {
+    position: absolute;
+    width: 6px; height: 16px;
+    background: radial-gradient(ellipse, rgba(212,102,122,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: petalFloat linear infinite;
+  }
+
+  @keyframes petalFloat {
+    0% { transform: translateY(110vh) rotate(0deg) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) rotate(720deg) translateX(40px); opacity: 0; }
+  }
+
+  .lock-inner {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 0 32px;
+    width: 100%; max-width: 360px;
+  }
+
+  .lock-heart {
+    font-size: 52px;
+    margin-bottom: 16px;
+    animation: heartbeat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(212,102,122,0.6));
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.12); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.08); }
+    56% { transform: scale(1); }
+  }
+
+  .lock-title {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .lock-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    margin-bottom: 44px;
+    letter-spacing: 0.5px;
+  }
+
+  .date-input-wrap {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .date-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  #dateInput {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(212,102,122,0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 22px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    transition: all 0.3s;
+    caret-color: var(--primary);
+  }
+
+  #dateInput::placeholder { color: rgba(255,255,255,0.2); letter-spacing: 2px; font-size: 15px; }
+  #dateInput:focus {
+    border-color: var(--primary);
+    background: rgba(212,102,122,0.08);
+    box-shadow: 0 0 0 3px rgba(212,102,122,0.15), 0 8px 32px rgba(212,102,122,0.1);
+  }
+
+  #lockError {
+    font-size: 12px;
+    color: #ff8099;
+    text-align: center;
+    min-height: 18px;
+    margin-bottom: 8px;
+    transition: opacity 0.3s;
+    opacity: 0;
+  }
+  #lockError.show { opacity: 1; }
+
+  .unlock-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(212,102,122,0.35);
+    position: relative; overflow: hidden;
+  }
+
+  .unlock-btn::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+  .unlock-btn:active::after { background: rgba(255,255,255,0.1); }
+  .unlock-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212,102,122,0.45); }
+
+  .lock-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* ════════════════════════════════════
+     ALBUM SCREEN
+  ════════════════════════════════════ */
+  #albumScreen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    opacity: 0;
+    transform: scale(0.97);
+    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+    pointer-events: none;
+  }
+
+  #albumScreen.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: all;
+  }
+
+  /* ─── TOP BAR ─── */
+  .top-bar {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 10;
+  }
+
+  .top-bar-title {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: -0.3px;
+  }
+
+  .top-bar-counter {
+    font-size: 12px;
+    color: var(--text-soft);
+    background: var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .dday-badge {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(212,102,122,0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(212,102,122,0.2);
+  }
+
+  /* ─── MAIN VIEWPORT ─── */
+  .album-viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  /* ─── PHOTO TRACK ─── */
+  .photo-track {
+    position: absolute; top: 0; left: 0;
+    display: flex;
+    height: 100%;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+
+  /* ─── PHOTO SLIDE ─── */
+  .photo-slide {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    position: relative;
+    background: var(--bg);
+  }
+
+  /* ─── FILM FRAME ─── */
+  .film-frame {
+    position: relative;
+    background: var(--film-strip);
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  /* Film sprocket holes - top */
+  .film-holes {
+    height: 18px;
+    background: var(--film-strip);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  .film-hole {
+    width: 10px; height: 8px;
+    background: var(--film-hole);
+    border-radius: 2px;
+    border: 1px solid #0a0505;
+    flex-shrink: 0;
+  }
+
+  /* ─── IMAGE CONTAINER ─── */
+  .img-container {
+    position: relative;
+    overflow: hidden;
+    background: #111;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #111;
+  }
+
+  /* Loading skeleton */
+  .img-skeleton {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #1a1212 25%, #2a1a1a 50%, #1a1212 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .photo-img.loaded + .img-skeleton { display: none; }
+  .photo-img.loaded { animation: fadeInImg 0.4s ease; }
+  @keyframes fadeInImg { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ─── FILM LABEL ─── */
+  .film-label {
+    height: 22px;
+    background: var(--film-strip);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .film-label-text {
+    font-size: 8px;
+    color: rgba(212,102,122,0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+  }
+
+  .film-number {
+    font-size: 9px;
+    color: rgba(255,200,100,0.4);
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ─── DATE STAMP ─── */
+  .date-stamp {
+    position: absolute;
+    bottom: 32px; right: 8px;
+    background: rgba(0,0,0,0.5);
+    color: rgba(255,180,80,0.85);
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 2px 5px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    pointer-events: none;
+  }
+
+  /* ─── NAV ARROWS ─── */
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px; height: 42px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 2px 12px var(--shadow);
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .nav-btn:active { transform: translateY(-50%) scale(0.92); }
+  .nav-btn.disabled { opacity: 0.25; pointer-events: none; }
+
+  #prevBtn { left: 12px; }
+  #nextBtn { right: 12px; }
+
+  .nav-btn svg { width: 18px; height: 18px; stroke: var(--primary-dark); }
+
+  /* ─── BOTTOM BAR ─── */
+  .bottom-bar {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px 20px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    gap: 10px;
+  }
+
+  /* Thumbnail strip */
+  .thumb-strip {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    width: 100%;
+    padding: 2px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+  .thumb-strip::-webkit-scrollbar { display: none; }
+
+  .thumb {
+    flex-shrink: 0;
+    width: 42px; height: 42px;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s;
+    opacity: 0.55;
+  }
+  .thumb.active {
+    border-color: var(--primary);
+    opacity: 1;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .bottom-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .dot-track {
+    display: flex; gap: 6px;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: var(--primary);
+    width: 18px;
+    border-radius: 3px;
+  }
+
+  /* ─── SWIPE HINT ─── */
+  .swipe-hint {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--text-soft);
+    letter-spacing: 0.5px;
+    opacity: 0;
+    animation: hintFade 3s ease 1.5s forwards;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  @keyframes hintFade {
+    0% { opacity: 0; }
+    20% { opacity: 0.7; }
+    80% { opacity: 0.7; }
+    100% { opacity: 0; }
+  }
+
+  /* ─── LIGHTBOX ─── */
+  #lightbox {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.93);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  #lightbox.open { opacity: 1; pointer-events: all; }
+  #lightbox img {
+    max-width: 95vw;
+    max-height: 92vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 60px rgba(0,0,0,0.6);
+    transform: scale(0.95);
+    transition: transform 0.3s;
+  }
+  #lightbox.open img { transform: scale(1); }
+  .lightbox-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.1);
+    border: none; border-radius: 50%;
+    color: #fff; font-size: 20px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+  /* ─── ENTRANCE ANIMATION ─── */
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .top-bar { animation: slideUp 0.6s ease 0.3s both; }
+  .bottom-bar { animation: slideUp 0.6s ease 0.5s both; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LOCK SCREEN
+══════════════════════════════════ -->
+<div id="lockScreen">
+  <div class="lock-bg-decor" id="petalContainer"></div>
+
+  <div class="lock-inner">
+    <div class="lock-heart">💌</div>
+    <div class="lock-title">우리의 앨범</div>
+    <div class="lock-subtitle">처음 만난 날이 언제였지?</div>
+
+    <div class="date-input-wrap">
+      <span class="date-label">사귄 날짜 입력</span>
+      <input
+        type="tel"
+        id="dateInput"
+        placeholder="YYYYMMDD"
+        maxlength="8"
+        autocomplete="off"
+      />
+    </div>
+
+    <div id="lockError">날짜가 맞지 않아요 🥺 다시 한 번 생각해봐요</div>
+    <button class="unlock-btn" onclick="tryUnlock()">💕 앨범 열기</button>
+
+    <p class="lock-hint">우리 둘만 아는 날짜로 잠겨있어요</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     ALBUM SCREEN
+══════════════════════════════════ -->
+<div id="albumScreen">
+  <div class="top-bar">
+    <div class="top-bar-title">📷 우리의 앨범</div>
+    <div class="dday-badge" id="ddayBadge">D+0</div>
+    <div class="top-bar-counter" id="photoCounter">1 / 1</div>
+  </div>
+
+  <div class="album-viewport" id="albumViewport">
+    <div class="photo-track" id="photoTrack"></div>
+
+    <button class="nav-btn disabled" id="prevBtn" onclick="navigate(-1)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+
+    <div class="swipe-hint">← 스와이프해서 넘기기 →</div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="thumb-strip" id="thumbStrip"></div>
+    <div class="bottom-actions">
+      <div class="dot-track" id="dotTrack"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+/* ════════════════════════════════════
+   ⚙️  CONFIG — 여기를 수정하세요
+════════════════════════════════════ */
+const CONFIG = {
+  TOTAL_PHOTOS: 48,                         // 사진 총 장수
+  BASE_URL: 'https://johun203.github.io/data/',          // 사진 경로 (끝에 / 포함)
+  FILE_EXT: '.dat',                         // 파일 확장자
+  START_INDEX: 1,                           // 시작 번호
+  PASSWORD: '20230620',
+  COUPLE_START_DATE: '2023-06-20', 
+  STORAGE_KEY: 'our_album_unlocked_v1',     // localStorage 키
+};
+
+/* ════════════════════════════════════
+   STATE
+════════════════════════════════════ */
+let currentIndex = 0;
+let totalPhotos = CONFIG.TOTAL_PHOTOS;
+let isDragging = false;
+let startX = 0, currentX = 0, diffX = 0;
+let isAnimating = false;
+
+/* ════════════════════════════════════
+   LOCK
+════════════════════════════════════ */
+function checkStoredUnlock() {
+  try {
+    return localStorage.getItem(CONFIG.STORAGE_KEY) === 'true';
+  } catch (e) {
+    // cookie fallback
+    return document.cookie.includes(CONFIG.STORAGE_KEY + '=true');
+  }
+}
+
+function storeUnlock() {
+  try {
+    localStorage.setItem(CONFIG.STORAGE_KEY, 'true');
+  } catch (e) {}
+  try {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    document.cookie = CONFIG.STORAGE_KEY + '=true; expires=' + d.toUTCString() + '; path=/';
+  } catch (e) {}
+}
+
+function tryUnlock() {
+  const val = document.getElementById('dateInput').value.trim();
+  if (val === CONFIG.PASSWORD) {
+    storeUnlock();
+    unlockAlbum();
+  } else {
+    const err = document.getElementById('lockError');
+    err.classList.add('show');
+    document.getElementById('dateInput').style.borderColor = '#ff6080';
+    setTimeout(() => {
+      err.classList.remove('show');
+      document.getElementById('dateInput').style.borderColor = '';
+    }, 2600);
+    // shake
+    const input = document.getElementById('dateInput');
+    input.animate([
+      {transform:'translateX(0)'},{transform:'translateX(-8px)'},
+      {transform:'translateX(8px)'},{transform:'translateX(-5px)'},
+      {transform:'translateX(5px)'},{transform:'translateX(0)'}
+    ], {duration: 420, easing: 'ease-in-out'});
+  }
+}
+
+document.getElementById('dateInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryUnlock();
+});
+
+/* ════════════════════════════════════
+   FALLING PETALS
+════════════════════════════════════ */
+(function spawnPetals() {
+  const container = document.getElementById('petalContainer');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'lock-petal';
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      animation-duration: ${5 + Math.random() * 8}s;
+      animation-delay: ${-Math.random() * 12}s;
+      width: ${4 + Math.random() * 6}px;
+      height: ${10 + Math.random() * 14}px;
+      opacity: ${0.3 + Math.random() * 0.5};
+    `;
+    container.appendChild(p);
+  }
+})();
+
+/* ════════════════════════════════════
+   D-DAY
+════════════════════════════════════ */
+function calcDDay() {
+  const start = new Date(CONFIG.COUPLE_START_DATE);
+  const now = new Date();
+  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+/* ════════════════════════════════════
+   BUILD ALBUM
+════════════════════════════════════ */
+function buildAlbum() {
+  const track = document.getElementById('photoTrack');
+  const thumbStrip = document.getElementById('thumbStrip');
+  const dotTrack = document.getElementById('dotTrack');
+  const vp = document.getElementById('albumViewport');
+
+  track.innerHTML = '';
+  thumbStrip.innerHTML = '';
+  dotTrack.innerHTML = '';
+
+  const vpW = vp.clientWidth;
+  const vpH = vp.clientHeight;
+
+  for (let i = 0; i < totalPhotos; i++) {
+    const num = CONFIG.START_INDEX + i;
+    const src = CONFIG.BASE_URL + num + CONFIG.FILE_EXT;
+
+    // ── Slide
+    const slide = document.createElement('div');
+    slide.className = 'photo-slide';
+    slide.style.width = vpW + 'px';
+    slide.style.height = vpH + 'px';
+
+    // ── Film frame
+    const frame = document.createElement('div');
+    frame.className = 'film-frame';
+
+    // Figure out how to size the frame
+    // Use most of viewport, leaving room for padding + film holes
+    const maxImgW = vpW - 32 - 16; // padding 16px each side, film side margins
+    const maxImgH = vpH - 32 - 18 - 22 - 18 - 22; // top/bottom padding + 2x holes + 2x label
+
+    frame.style.width = (maxImgW + 12) + 'px';
+
+    // Top holes
+    const topHoles = document.createElement('div');
+    topHoles.className = 'film-holes';
+    const holeCount = Math.max(4, Math.floor(maxImgW / 28));
+    for (let h = 0; h < holeCount; h++) {
+      const hole = document.createElement('div');
+      hole.className = 'film-hole';
+      topHoles.appendChild(hole);
+    }
+
+    // Image container
+    const imgCont = document.createElement('div');
+    imgCont.className = 'img-container';
+    imgCont.style.width = maxImgW + 'px';
+    imgCont.style.height = Math.min(maxImgH, maxImgW * 2) + 'px'; // default aspect, adjusts on load
+    imgCont.style.margin = '0 6px';
+
+    const img = document.createElement('img');
+    img.className = 'photo-img';
+    img.alt = '사진 ' + num;
+    img.loading = i < 3 ? 'eager' : 'lazy';
+
+    const skeleton = document.createElement('div');
+    skeleton.className = 'img-skeleton';
+
+    img.onload = function() {
+      this.classList.add('loaded');
+      // Adjust container aspect ratio to match image
+      const ratio = this.naturalHeight / this.naturalWidth;
+      const clampedH = Math.min(maxImgH, maxImgW * ratio);
+      const clampedW = Math.min(maxImgW, maxImgH / ratio);
+      if (ratio > 1) {
+        // portrait / tall
+        imgCont.style.height = Math.round(clampedH) + 'px';
+        imgCont.style.width = maxImgW + 'px';
+      } else {
+        // landscape / wide
+        imgCont.style.width = Math.round(clampedW) + 'px';
+        imgCont.style.height = Math.round(clampedH) + 'px';
+      }
+    };
+
+    img.src = src;
+    imgCont.appendChild(img);
+    imgCont.appendChild(skeleton);
+
+    // Date stamp
+    const stamp = document.createElement('div');
+    stamp.className = 'date-stamp';
+    const d = new Date(CONFIG.COUPLE_START_DATE);
+    d.setDate(d.getDate() + i * 7);
+    stamp.textContent = d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+    imgCont.appendChild(stamp);
+
+    // Bottom holes + label
+    const botHoles = document.createElement('div');
+    botHoles.className = 'film-holes';
+    for (let h = 0; h < holeCount; h++) {
+      const hole = document.createElement('div');
+      hole.className = 'film-hole';
+      botHoles.appendChild(hole);
+    }
+
+    const label = document.createElement('div');
+    label.className = 'film-label';
+    const lt = document.createElement('span');
+    lt.className = 'film-label-text';
+    lt.textContent = '♡ OUR MEMORIES ♡';
+    const ln = document.createElement('span');
+    ln.className = 'film-number';
+    ln.textContent = String(num).padStart(3, '0');
+    label.appendChild(lt);
+    label.appendChild(ln);
+
+    frame.appendChild(topHoles);
+    frame.appendChild(imgCont);
+    frame.appendChild(botHoles);
+    frame.appendChild(label);
+
+    // Click → lightbox
+    frame.addEventListener('click', () => openLightbox(src));
+
+    slide.appendChild(frame);
+    track.appendChild(slide);
+
+    // ── Thumbnail
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb' + (i === 0 ? ' active' : '');
+    thumb.dataset.index = i;
+    const tImg = document.createElement('img');
+    tImg.src = src;
+    tImg.alt = '';
+    tImg.loading = 'lazy';
+    thumb.appendChild(tImg);
+    thumb.addEventListener('click', () => goTo(i));
+    thumbStrip.appendChild(thumb);
+
+    // ── Dot
+    if (totalPhotos <= 30) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', () => goTo(i));
+      dotTrack.appendChild(dot);
+    }
+  }
+
+  // Set track width
+  track.style.width = (vpW * totalPhotos) + 'px';
+
+  updateUI();
+}
+
+/* ════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════ */
+function navigate(dir) {
+  if (isAnimating) return;
+  goTo(currentIndex + dir);
+}
+
+function goTo(index) {
+  if (index < 0 || index >= totalPhotos || isAnimating) return;
+  isAnimating = true;
+  currentIndex = index;
+  applyTransform(currentIndex, true);
+  updateUI();
+  setTimeout(() => { isAnimating = false; }, 480);
+}
+
+function applyTransform(index, animated) {
+  const vp = document.getElementById('albumViewport');
+  const track = document.getElementById('photoTrack');
+  const vpW = vp.clientWidth;
+  track.style.transition = animated
+    ? 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    : 'none';
+  track.style.transform = 'translateX(' + (-index * vpW) + 'px)';
+}
+
+function updateUI() {
+  // Counter
+  document.getElementById('photoCounter').textContent = (currentIndex + 1) + ' / ' + totalPhotos;
+
+  // Nav buttons
+  document.getElementById('prevBtn').classList.toggle('disabled', currentIndex === 0);
+  document.getElementById('nextBtn').classList.toggle('disabled', currentIndex === totalPhotos - 1);
+
+  // Dots
+  document.querySelectorAll('.dot').forEach(d => {
+    d.classList.toggle('active', +d.dataset.index === currentIndex);
+  });
+
+  // Thumbnails
+  document.querySelectorAll('.thumb').forEach(t => {
+    t.classList.toggle('active', +t.dataset.index === currentIndex);
+  });
+
+  // Scroll active thumb into view
+  const activeThumb = document.querySelector('.thumb.active');
+  if (activeThumb) {
+    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+}
+
+/* ════════════════════════════════════
+   TOUCH / SWIPE
+════════════════════════════════════ */
+function initSwipe() {
+  const vp = document.getElementById('albumViewport');
+  const track = document.getElementById('photoTrack');
+
+  vp.addEventListener('touchstart', e => {
+    if (isAnimating) return;
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    diffX = 0;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  vp.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX;
+    diffX = currentX - startX;
+    const vpW = vp.clientWidth;
+    const offset = -currentIndex * vpW + diffX * 0.85;
+    track.style.transform = 'translateX(' + offset + 'px)';
+  }, { passive: true });
+
+  vp.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    const vpW = vp.clientWidth;
+    if (diffX < -50 && currentIndex < totalPhotos - 1) {
+      goTo(currentIndex + 1);
+    } else if (diffX > 50 && currentIndex > 0) {
+      goTo(currentIndex - 1);
+    } else {
+      applyTransform(currentIndex, true);
+    }
+  });
+
+  // Mouse drag for desktop
+  let mouseDown = false, mouseStartX = 0;
+  vp.addEventListener('mousedown', e => {
+    if (isAnimating) return;
+    mouseDown = true;
+    mouseStartX = e.clientX;
+    track.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!mouseDown) return;
+    const diff = e.clientX - mouseStartX;
+    const vpW = vp.clientWidth;
+    const offset = -currentIndex * vpW + diff * 0.85;
+    track.style.transform = 'translateX(' + offset + 'px)';
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (!mouseDown) return;
+    mouseDown = false;
+    const diff = e.clientX - mouseStartX;
+    const vpW = vp.clientWidth;
+    if (diff < -50 && currentIndex < totalPhotos - 1) goTo(currentIndex + 1);
+    else if (diff > 50 && currentIndex > 0) goTo(currentIndex - 1);
+    else applyTransform(currentIndex, true);
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('albumScreen').classList.contains('visible')) return;
+    if (e.key === 'ArrowRight') navigate(1);
+    else if (e.key === 'ArrowLeft') navigate(-1);
+    else if (e.key === 'Escape') closeLightbox();
+  });
+}
+
+/* ════════════════════════════════════
+   LIGHTBOX
+════════════════════════════════════ */
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lb.classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+/* ════════════════════════════════════
+   UNLOCK & SHOW ALBUM
+════════════════════════════════════ */
+function unlockAlbum() {
+  // D-day
+  const dday = calcDDay();
+  document.getElementById('ddayBadge').textContent = 'D+' + dday;
+
+  buildAlbum();
+  initSwipe();
+
+  const lock = document.getElementById('lockScreen');
+  const album = document.getElementById('albumScreen');
+
+  lock.classList.add('hidden');
+  album.classList.add('visible');
+}
+
+/* ════════════════════════════════════
+   INIT
+════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  if (checkStoredUnlock()) {
+    // Auto unlock
+    document.getElementById('lockScreen').style.display = 'none';
+    unlockAlbum();
+  }
+});
+
+// Resize handler
+window.addEventListener('resize', () => {
+  if (!document.getElementById('albumScreen').classList.contains('visible')) return;
+  buildAlbum();
+  goTo(currentIndex);
+});
+</script>
+</body>
+</html>
